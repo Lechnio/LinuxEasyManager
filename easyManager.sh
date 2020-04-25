@@ -381,7 +381,7 @@ if [ "${OPTIONS[6]}" == "$MARK_CHAR" ]; then
 	VIM_VER=$(ls /usr/share/vim/ | grep -E "^vim[0-9]+$")
 	sudo mv "$TEMP_DIR"/kali.vim /usr/share/vim/$VIM_VER/colors/
 	vim +PluginInstall +qall
-	sudo python ~/.vim/bundle/YouCompleteMe/install.py --clang-completer
+	sudo python3 ~/.vim/bundle/YouCompleteMe/install.py --clang-completer # use --all instead to use with all lenguages
 
 	log "Configuring Clewn debuger\n"
 	tar -xvzf "$TEMP_DIR"/clewn-1.15.tar.gz -C "$TEMP_DIR"
