@@ -304,7 +304,7 @@ if [ "${OPTIONS[4]}" == "$MARK_CHAR" ]; then
 	"unp"
 	)
 
-	sudo apt-get install -y "${LIST_TO_INSTALL[@]}"
+	sudo apt-get install -ym "${LIST_TO_INSTALL[@]}"
 	sudo tlp start			# needed for the very first time
 	
 	log "Installed/updated applications:\n" "${LIST_TO_INSTALL[*]}"
@@ -333,16 +333,18 @@ if [ "${OPTIONS[5]}" == "$MARK_CHAR" ]; then
 	
 	sudo apt-get update
 
-	local DEVELOPMENT_TO_INSTALL=(	
-	"qtcreator"
-	"libqtcore4"
-	"libqtcore4:i386"
-	"libqtgui4"
-	"libqtgui4:i386"
+	local DEVELOPMENT_TO_INSTALL=(
+	"cmake"
+	"meson"
+#	"qtcreator"
+#	"libqtcore4"
+#	"libqtcore4:i386"
+#	"libqtgui4"
+#	"libqtgui4:i386"
+#	"libgl1-mesa-dev"		#for QTCreator
+#	"libgl1-mesa-dev:i386"		#for QTCreator
+#	"kdesvn"			#svn graphic interface
 	"build-essential"
-	"libgl1-mesa-dev"		#for QTCreator
-	"libgl1-mesa-dev:i386"		#for QTCreator
-	"kdesvn"			#svn graphic interface
 	"pkg-config"
 	"bison"
 	"flex"
@@ -353,7 +355,7 @@ if [ "${OPTIONS[5]}" == "$MARK_CHAR" ]; then
 	"textinfo"
 	)
 
-	sudo apt-get install -y "${DEVELOPMENT_TO_INSTALL[@]}"
+	sudo apt-get install -ym "${DEVELOPMENT_TO_INSTALL[@]}"
 	log "Installed/updated applications:\n" "${DEVELOPMENT_TO_INSTALL[*]}"
 
 	print_marked_msg --finished-success "Installing development tools"
@@ -365,10 +367,10 @@ if [ "${OPTIONS[6]}" == "$MARK_CHAR" ]; then
 	print_marked_msg --started "Configuring VIM for $(whoami)"
 
 	local TEMP_DIR=$(mktemp -d "/tmp/$THIS_NAME".XXXXX)
-	local REQUIRMENTS=("vim-gnome" "vim-gtk3" "libreadline-dev") #vim-gnome can be obsolete
+	local REQUIRMENTS=("vim-gtk3" "libreadline-dev" "cmake")
 
 	log "Checking requirments for Clewn:\n" "${REQUIRMENTS[*]}"
-	sudo apt-get install -y "${REQUIRMENTS[@]}"
+	sudo apt-get install -ym "${REQUIRMENTS[@]}"
 
 	log "Removing old plugins\n"
 	sudo rm -rf ~/.vim
@@ -379,6 +381,7 @@ if [ "${OPTIONS[6]}" == "$MARK_CHAR" ]; then
 	mv "$TEMP_DIR"/.vimrc ~/
 	mv "$TEMP_DIR"/.ycm_extra_conf.py ~/.vim/
 	VIM_VER=$(ls /usr/share/vim/ | grep -E "^vim[0-9]+$")
+	VIM_VER=${VIM_VER##*[[:space:]]}
 	sudo mv "$TEMP_DIR"/kali.vim /usr/share/vim/$VIM_VER/colors/
 	vim +PluginInstall +qall
 	sudo python3 ~/.vim/bundle/YouCompleteMe/install.py --clang-completer # use --all instead to use with all lenguages
