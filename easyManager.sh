@@ -1,6 +1,6 @@
 #!/bin/bash
 
-readonly CURRENT_VERSION="1.1.2"
+readonly CURRENT_VERSION="1.1.3"
 readonly THIS_NAME=$(basename "$0")
 
 #===========================
@@ -127,19 +127,29 @@ function update_script()
 
 	if [ $U_VER_R -gt $C_VER_R ]; then
 		if [ "$OPTION" == "--check-only" ]; then
-			LAST_MSG="HEY! New tool update is available, run `--update` to get the latest version :)"
-			rm "$TEMP_FILE"
+			LAST_MSG="\033[0;33mHEY! New tool update is available!\nSelect update option or run script with '--update' to get the latest version :)\033[0m"
 		else
-			mv "$TEMP_FILE" "$THIS_NAME"
+			wget -O "$(pwd)/$THIS_NAME" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/easyManager.sh > /dev/null 2>&1
+
+			if [ $? -ne 0 ]; then
+				LAST_MSG="Error when downloading file."
+		
+				# reset output for check only case
+				[ "$OPTION" == "--check-only" ] && LAST_MSG=""
+
+				rm "$TEMP_FILE"
+				return 1
+			fi
+
 			LAST_MSG+="Script updated to version '$UPSTREAM_VERSION'."
 		fi
 	else
-		rm "$TEMP_FILE"
 		LAST_MSG+="You are up to date."
 
 		[ "$OPTION" == "--check-only" ] && LAST_MSG=""
 	fi
 
+	rm "$TEMP_FILE"
 	return 0
 }
 
