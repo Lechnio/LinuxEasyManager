@@ -470,8 +470,6 @@ return 0
 
 function main()
 {
-	init
-
 	# args handing
 	if [ $# -gt 0 ]; then
 
@@ -500,6 +498,8 @@ function main()
 
 		exit 0
 	fi
+
+	init
 
 	options_loop
 	run_selected_options
