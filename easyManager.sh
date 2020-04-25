@@ -1,6 +1,6 @@
 #!/bin/bash
 
-readonly CURRENT_VERSION="1.1.1"
+readonly CURRENT_VERSION="1.1.2"
 readonly THIS_NAME=$(basename "$0")
 
 #===========================
