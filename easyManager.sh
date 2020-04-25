@@ -1,6 +1,6 @@
 #!/bin/bash
 
-readonly CURRENT_VERSION="1.0"
+readonly CURRENT_VERSION="1.1.1"
 readonly THIS_NAME=$(basename "$0")
 
 #===========================
@@ -8,7 +8,9 @@ readonly THIS_NAME=$(basename "$0")
 readonly MARK_CHAR="\033[1;32m▶\033[0m"
 readonly SCRIPT_INDICATOR="\033[0m[\033[1;33mSCRIPT\033[0m]"
 readonly OPTION_STARTED="...\033[2m"
-readonly OPTION_FINISHED="[\033[1;32mFINISHED\033[0m]"
+readonly OPTION_WARNING="[\033[0;33mWARNING\033[0m]"
+readonly OPTION_FINISHED_S="[\033[1;32mFINISHED SUCCESS\033[0m]"
+readonly OPTION_FINISHED_E="[\033[1;31mFINISHED ERROR\033[0m]"
 #===========================
 
 declare -a OPTIONS
@@ -21,12 +23,12 @@ function init()
 	done
 
 	# check for auto update
-	update_script 1
+	update_script --check-only
 }
 
 function print_menu()
 {
-	MESSAGE=(
+	local MESSAGE=(
 	"\n"
 	"*****************************************************\n"
 	"             Hello in Linux Easy Manager             \n"
@@ -68,17 +70,50 @@ function print_menu()
 	LAST_MSG=""
 }
 
+function log()
+{
+	echo -e "$SCRIPT_INDICATOR ${1}\033[0;36m"${2:-""}"\033[2m\n"
+}
+
+function print_marked_msg()
+{
+	local SUFFIX
+
+	case ${1} in
+		"--started")
+		SUFFIX=$OPTION_STARTED
+		;;
+		"--warning")
+		SUFFIX=$OPTION_WARNING
+		;;
+		"--finished-success")
+		SUFFIX=$OPTION_FINISHED_S
+		;;
+		"--finished-error")
+		SUFFIX=$OPTION_FINISHED_E
+		;;
+	esac
+			
+	echo -e "$SCRIPT_INDICATOR ${2}$SUFFIX\n"
+}
+
+function print_progress()
+{
+	echo -e "$SCRIPT_INDICATOR Tasks progress: ${PROGRESS:-0}/${SELECTED_CNT:-0}\n"
+	(( PROGRESS++ ))
+}
+
 function update_script()
 {
-	local CHECK_ONLY=${1}
+	local OPTION=${1}
 
 	local TEMP_FILE=$(mktemp "/tmp/$THIS_NAME_version".XXXXX)
 	wget -O "$TEMP_FILE" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/VERSION > /dev/null 2>&1
 	if [ $? -ne 0 ]; then
 		LAST_MSG="Error when downloading file."
 		
-		# rest output for check only case
-		[ $CHECK_ONLY -eq 1 ] && LAST_MSG=""
+		# reset output for check only case
+		[ "$OPTION" == "--check-only" ] && LAST_MSG=""
 
 		return 1
 	fi
@@ -91,7 +126,7 @@ function update_script()
 	local U_VER_R="${UPSTREAM_VERSION//.}"
 
 	if [ $U_VER_R -gt $C_VER_R ]; then
-		if [ $CHECK_ONLY -eq 1 ]; then
+		if [ "$OPTION" == "--check-only" ]; then
 			LAST_MSG="HEY! New tool update is available, run `--update` to get the latest version :)"
 			rm "$TEMP_FILE"
 		else
@@ -100,10 +135,12 @@ function update_script()
 		fi
 	else
 		rm "$TEMP_FILE"
-		LAST_MSG+="Script is up to date."
+		LAST_MSG+="You are up to date."
 
-		[ $CHECK_ONLY -eq 1 ] && LAST_MSG=""
+		[ "$OPTION" == "--check-only" ] && LAST_MSG=""
 	fi
+
+	return 0
 }
 
 function options_loop()
@@ -168,13 +205,21 @@ function options_loop()
 	done
 }
 
-#
-# START SCRIPT
-#
+function run_selected_options()
+{
+	local SELECTED_CNT=0
+	local PROGRESS=1
+	local FAILED_CNT=0
+	local WARNING_CNT=0
 
+	for i in "${OPTIONS[@]}"; do
+		[ "$i" != " " ] && (( SELECTED_CNT++ ))
+	done
+	
 # update sources list
 if [ "${OPTIONS[1]}" == "$MARK_CHAR" ]; then
-	echo -e "$SCRIPT_INDICATOR Updating sources list$OPTION_STARTED\n";
+	print_progress
+	print_marked_msg --started "Updating sources list"
 
 	SOURCES_LIST=(
 	"deb http://http.kali.org/kali kali-rolling main contrib non-free\n"
@@ -184,19 +229,27 @@ if [ "${OPTIONS[1]}" == "$MARK_CHAR" ]; then
 	"# For tlp\n"
 	"deb http://repo.linrunner.de/debian wheezy main"
 	)
-	sudo echo -e "${SOURCES_LIST[@]}" > /etc/apt/sources.list
-	echo -e "$SCRIPT_INDICATOR Sources list updated:\n\033[0;36m"${SOURCES_LIST[@]}"\033[0m\n"
 
-	echo -e "$SCRIPT_INDICATOR Updating sources list $OPTION_FINISHED\n";
+	sudo echo -e "${SOURCES_LIST[@]}" > /etc/apt/sources.list
+	if [ $? ]; then
+		(( FAILED_CNT++ ))
+		print_marked_msg --finished-error "Updating sources list"
+	else
+		log "Sources list updated:\n" "${SOURCES_LIST[*]}"
+		print_marked_msg --finished-success "Updating sources list"
+	fi
 fi
 
 # now add the KEY and fingerprint to use update
 # NOTE THIS ->>> You have to be root to have privilidge run an export
 if [ "${OPTIONS[2]}" == "$MARK_CHAR" ]; then
-	echo -e "$SCRIPT_INDICATOR Updating KEYs and fingerprints$OPTION_STARTED\n";
+	print_progress
+	print_marked_msg --started "Updating KEYs and fingerprints"
 
-	if [ "$(whoami)" == "root" ]; then
-
+	if [ "$(whoami)" != "root" ]; then
+		(( WARNING_CNT++ ))
+		print_marked_msg --warning "You are not root user! Skipping..."
+	else
 		gpg --keyserver hkp://keys.gnupg.net --recv-key 7D8D0BF6
 		gpg --fingerprint 7D8D0BF6
 		gpg -a --export 7D8D0BF6 | apt-key add -
@@ -205,17 +258,15 @@ if [ "${OPTIONS[2]}" == "$MARK_CHAR" ]; then
 		gpg --keyserver hkp://keys.gnupg.net --recv-key 641EED65CD4E8809
 		gpg --fingerprint 641EED65CD4E8809
 		gpg -a --export 641EED65CD4E8809 | apt-key add -
-	else
-		echo -e "$SCRIPT_INDICATOR \033[1;31mYou are not root user!\033[0m"
-		echo -e "$SCRIPT_INDICATOR \033[1;31mSkipping$OPTION_STARTED\033[0m\n"
-	fi
 
-	echo -e "$SCRIPT_INDICATOR Updating KEYs and fingerprints $OPTION_FINISHED\n";
+		print_marked_msg --finished-success "Updating KEYs and fingerprints"
+	fi
 fi
 
 # now run apt-get update and so one
 if [ "${OPTIONS[3]}" == "$MARK_CHAR" ]; then
-	echo -e "$SCRIPT_INDICATOR Starting apt-get$OPTION_STARTED\n";
+	print_progress
+	print_marked_msg --started "Starting apt-get update"
 
 	sudo apt-get clean
 	sudo apt-get update
@@ -223,16 +274,17 @@ if [ "${OPTIONS[3]}" == "$MARK_CHAR" ]; then
 	sudo apt-get dist-upgrade -y
 	sudo apt autoremove -y
 
-	echo -e "$SCRIPT_INDICATOR Starting apt-get $OPTION_FINISHED\n";
+	print_marked_msg --finished-success "Starting apt-get update"
 fi
 
 # things to install by apt-get
 if [ "${OPTIONS[4]}" == "$MARK_CHAR" ]; then
-	echo -e "$SCRIPT_INDICATOR Installing custom apps$OPTION_STARTED\n";
+	print_progress
+	print_marked_msg --started "Installing custom apps"
 
 	sudo apt-get update
 
-	LIST_TO_INSTALL=(
+	local LIST_TO_INSTALL=(
 	"chromium"
 	"tree"
 	"htop"
@@ -255,36 +307,42 @@ if [ "${OPTIONS[4]}" == "$MARK_CHAR" ]; then
 	sudo apt-get install -y "${LIST_TO_INSTALL[@]}"
 	sudo tlp start			# needed for the very first time
 	
-	# flashplayer for mozilla
+	log "Installed/updated applications:\n" "${LIST_TO_INSTALL[*]}"
+
+	log "Installing flashplayer for mozilla..."
 	wget https://raw.githubusercontent.com/cybernova/fireflashupdate/master/fireflashupdate.sh
-	chmod +x fireflashupdate.sh
-	./fireflashupdate.sh
-	rm fireflashupdate.sh
+	if [ $? ]; then
+		chmod +x fireflashupdate.sh
+		./fireflashupdate.sh
+		rm fireflashupdate.sh
+	else
+		(( WARNING_CNT++ ))
+		print_marked_msg --warning "Could not fetch flashplayer from upstream"
+	fi
 
-	echo -e "$SCRIPT_INDICATOR Installed/updated applications:\n\033[0;36m"${LIST_TO_INSTALL[@]}"\033[0m\n"
-
-	echo -e "$SCRIPT_INDICATOR Installing custom apps $OPTION_FINISHED\n"
+	print_marked_msg --finished-success "Installing custom apps"
 fi
 
 # install development tools
 if [ "${OPTIONS[5]}" == "$MARK_CHAR" ]; then
-	echo -e "$SCRIPT_INDICATOR Installing development tools$OPTION_STARTED\n";
+	print_progress
+	print_marked_msg --started "Installing development tools"
 
 	# adding 32 bit architecture
 	sudo dpkg --add-architecture i386
 	
 	sudo apt-get update
 
-	DEVELOPMENT_TO_INSTALL=(	
+	local DEVELOPMENT_TO_INSTALL=(	
 	"qtcreator"
 	"libqtcore4"
 	"libqtcore4:i386"
 	"libqtgui4"
 	"libqtgui4:i386"
 	"build-essential"
-	"libgl1-mesa-dev"			#for QTCreator
+	"libgl1-mesa-dev"		#for QTCreator
 	"libgl1-mesa-dev:i386"		#for QTCreator
-	"kdesvn"					#svn graphic interface
+	"kdesvn"			#svn graphic interface
 	"pkg-config"
 	"bison"
 	"flex"
@@ -296,25 +354,26 @@ if [ "${OPTIONS[5]}" == "$MARK_CHAR" ]; then
 	)
 
 	sudo apt-get install -y "${DEVELOPMENT_TO_INSTALL[@]}"
-	echo -e "$SCRIPT_INDICATOR Installed/updated applications:\n\033[0;36m"${DEVELOPMENT_TO_INSTALL[@]}"\033[0m\n"
+	log "Installed/updated applications:\n" "${DEVELOPMENT_TO_INSTALL[*]}"
 
-	echo -e "$SCRIPT_INDICATOR Installing development tools $OPTION_FINISHED\n";
+	print_marked_msg --finished-success "Installing development tools"
 fi
 
-# configure VIM
+# configure VIMnm
 if [ "${OPTIONS[6]}" == "$MARK_CHAR" ]; then
-	echo -e "$SCRIPT_INDICATOR Configuring VIM for "$(whoami)"$OPTION_STARTED\n";
+	print_progress
+	print_marked_msg --started "Configuring VIM for $(whoami)"
 
-	TEMP_DIR=$(mktemp -d "$THIS_NAME".XXXXX)
-	REQUIRMENTS=("vim-gnome" "libreadline-dev")
+	local TEMP_DIR=$(mktemp -d "/tmp/$THIS_NAME".XXXXX)
+	local REQUIRMENTS=("vim-gnome" "vim-gtk3" "libreadline-dev") #vim-gnome can be obsolete
 
-	echo -e "$SCRIPT_INDICATOR Checking requirments for Clewn$OPTION_STARTED"
+	log "Checking requirments for Clewn:\n" "${REQUIRMENTS[*]}"
 	sudo apt-get install -y "${REQUIRMENTS[@]}"
 
-	echo -e "$SCRIPT_INDICATOR Removing old plugins$OPTION_STARTED"
+	log "Removing old plugins\n"
 	sudo rm -rf ~/.vim
 
-	echo -e "$SCRIPT_INDICATOR Configuring new plugins$OPTION_STARTED"
+	log "Configuring new plugins\n"
 	git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
 	git clone https://github.com/Lechnio/VIM-settings.git "$TEMP_DIR"/
 	mv "$TEMP_DIR"/.vimrc ~/
@@ -324,7 +383,7 @@ if [ "${OPTIONS[6]}" == "$MARK_CHAR" ]; then
 	vim +PluginInstall +qall
 	sudo python ~/.vim/bundle/YouCompleteMe/install.py --clang-completer
 
-	echo -e "$SCRIPT_INDICATOR Configuring Clewn debuger$OPTION_STARTED"
+	log "Configuring Clewn debuger\n"
 	tar -xvzf "$TEMP_DIR"/clewn-1.15.tar.gz -C "$TEMP_DIR"
 	(cd "$TEMP_DIR"/clewn-1.15/ && ./configure)
 	(cd "$TEMP_DIR"/clewn-1.15/ && make)
@@ -334,30 +393,41 @@ if [ "${OPTIONS[6]}" == "$MARK_CHAR" ]; then
 	mkdir -p ~/.vim/macros/ && cp /usr/local/share/vim/vimfiles/macros/clewn_mappings.vim  ~/.vim/macros/
 	mkdir -p ~/.vim/syntax/ && cp /usr/local/share/vim/vimfiles/syntax/gdbvar.vim ~/.vim/syntax/
 
-	echo -e "$SCRIPT_INDICATOR Removing temp files$OPTION_STARTED"
+	log "Removing temp files\n"
 	rm -rf "$TEMP_DIR"
 
-	echo -e "$SCRIPT_INDICATOR Configuring VIM for "$(whoami)" $OPTION_FINISHED\n";
+	print_marked_msg --finished-success "Configuring VIM for $(whoami)"
 fi
 
 # install Spotify client
 if [ "${OPTIONS[7]}" == "$MARK_CHAR" ]; then
-	echo -e "$SCRIPT_INDICATOR Installing Spotify$OPTION_STARTED\n";
+	print_progress
+	print_marked_msg --started "Installing Spotify"
 
 	sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 931FF8E79F0876134EDDBDCCA87FF9DF48BF1C90
 	sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 4773BD5E130D1D45
 	sudo echo "deb http://repository.spotify.com stable non-free" > /etc/apt/sources.list.d/spotify.list
-	sudo apt-get update
-	sudo apt-get install spotify-client
+	if [ ! $? ]; then
+		(( FAILED_CNT++ ))
+		print_marked_msg --finished-error "Installing Spotify"
+	else
+		sudo apt-get update
+		sudo apt-get install spotify-client
 
-	echo -e "$SCRIPT_INDICATOR Installing Spotify $OPTION_FINISHED\n";
+		print_marked_msg --finished-success "Installing Spotify"
+	fi
 fi
 
 # install extra hacking tools
 if [ "${OPTIONS[8]}" == "$MARK_CHAR" ]; then
-	echo -e "$SCRIPT_INDICATOR Installing hacking tools$OPTION_STARTED\n";
+	print_progress
+	print_marked_msg --started "Installing hacking tools"
 
-	if [ "$(whoami)" == "root" ]; then
+	if [ "$(whoami)" != "root" ]; then
+		(( WARNING_CNT++ ))
+		print_marked_msg --warning "You are not root user! Skipping..."
+	else
+		local CUR_DIR=$(pwd)
 		cd
 		git clone https://github.com/arismelachroinos/lscript.git
 		cd lscript
@@ -365,13 +435,20 @@ if [ "${OPTIONS[8]}" == "$MARK_CHAR" ]; then
 		./install.sh
 		
 		pip install --upgrade google-auth-oauthlib # for wifi-pumpkin
-	else
-		echo -e "$SCRIPT_INDICATOR \033[1;31mYou are not root user!\033[0m"
-		echo -e "$SCRIPT_INDICATOR \033[1;31mSkipping$OPTION_STARTED\033[0m\n"
+		cd $CUR_DIR	
+	
+		print_marked_msg --finished-success "Installing hacking tools"
 	fi
-
-	echo -e "$SCRIPT_INDICATOR Installing hacking tools $OPTION_FINISHED\n";
 fi
+
+echo "*************************"
+echo "  All options proceeded  "
+echo "*************************"
+echo "$FAILED_CNT from $SELECTED_CNT tasks failed."
+echo "$WARNING_CNT from $SELECTED_CNT tasks finished with warning." 
+
+return 0
+}
 
 function main()
 {
@@ -385,9 +462,14 @@ function main()
 				HELP_MSG=(
 				"Usage: '$0 [option]'\n\n"
 				" -h, --help      Show this help message.\n"
+				" -u, --update    Updates script against git repository.\n"
 				" -V, --version   Show script version."
 				)
 				echo -e "${HELP_MSG[@]}"
+				;;
+			"-u" | "--update")
+				update_script
+				echo -e "$LAST_MSG"
 				;;
 			"-V" | "--version")
 				echo -e "$CURRENT_VERSION"
@@ -402,15 +484,9 @@ function main()
 	fi
 
 	options_loop
+	run_selected_options
 }
 
 main ${@}
-
-# exit message
-echo ""
-echo "*******************"
-echo "  Script finished  "
-echo "*******************"
-echo ""
 
 exit 0
