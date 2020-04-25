@@ -10,7 +10,14 @@ Current stable release can be accessed on the master branch.
 
 ### Description
 
-TBD
+Program can be run in two different ways:
+* `./easyManager.sh` running script with no arguments allows you to open interactive menu showed below.
+![Main program menu](https://github.com/Lechnio/LinuxEasyManager/blob/master/rsc/img/example_selects.png)
+
+* `easyManager.sh --help` allows you to check which features can be accessed via command line arguments.
+
+Program has an option of automatically check for updates on each execution.
+Update can be also checked by running `./easyManager.sh --update`.
 
 ## Authors
 * **Jakub Frąckiewicz** - *created for training purposes* - [Lechnio](https://github.com/Lechnio)

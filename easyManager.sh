@@ -1,5 +1,10 @@
 #!/bin/bash
 
+##########################################
+#   Author: Jakub Frąckiewicz            #
+#   Github: https://github.com/Lechnio   #
+##########################################
+
 readonly CURRENT_VERSION="1.1.3"
 readonly THIS_NAME=$(basename "$0")
 
