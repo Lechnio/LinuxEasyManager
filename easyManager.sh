@@ -5,17 +5,19 @@
 #   Github: https://github.com/Lechnio   #
 ##########################################
 
-readonly CURRENT_VERSION="1.1.3"
-readonly THIS_NAME=$(basename "$0")
+readonly CURRENT_VERSION="1.2.3"
+readonly THIS_NAME="$(basename "$0")"
+readonly THIS_DIR="$(pwd)/$(dirname $0)"
 
 #===========================
 # customize yours tags here
 readonly MARK_CHAR="\033[1;32m▶\033[0m"
 readonly SCRIPT_INDICATOR="\033[0m[\033[1;33mSCRIPT\033[0m]"
 readonly OPTION_STARTED="...\033[2m"
+readonly OPTION_INFO="[\033[0;34mINFO\033[0m]"
 readonly OPTION_WARNING="[\033[0;33mWARNING\033[0m]"
-readonly OPTION_FINISHED_S="[\033[1;32mFINISHED SUCCESS\033[0m]"
-readonly OPTION_FINISHED_E="[\033[1;31mFINISHED ERROR\033[0m]"
+readonly OPTION_SUCCESS="[\033[1;32mSUCCESS\033[0m]"
+readonly OPTION_ERROR="[\033[1;31mERROR\033[0m]"
 #===========================
 
 declare -a OPTIONS
@@ -77,7 +79,7 @@ function print_menu()
 
 function log()
 {
-    echo -e "$SCRIPT_INDICATOR ${1}\033[0;36m"${2:-""}"\033[2m\n"
+    echo -e "$SCRIPT_INDICATOR ${1}\033[0;36m"${2:-""}"\033[2m"
 }
 
 function print_marked_msg()
@@ -86,20 +88,23 @@ function print_marked_msg()
 
     case ${1} in
         "--started")
-        SUFFIX=$OPTION_STARTED
-        ;;
+            SUFFIX=$OPTION_STARTED
+            ;;
+        "--info")
+            SUFFIX=$OPTION_INFO
+            ;;
         "--warning")
-        SUFFIX=$OPTION_WARNING
-        ;;
-        "--finished-success")
-        SUFFIX=$OPTION_FINISHED_S
-        ;;
-        "--finished-error")
-        SUFFIX=$OPTION_FINISHED_E
-        ;;
+            SUFFIX=$OPTION_WARNING
+            ;;
+        "--success")
+            SUFFIX=$OPTION_SUCCESS
+            ;;
+        "--error")
+            SUFFIX=$OPTION_ERROR
+            ;;
     esac
 
-    echo -e "$SCRIPT_INDICATOR ${2}$SUFFIX\n"
+    echo -e "$SCRIPT_INDICATOR ${2} $SUFFIX"
 }
 
 function print_progress()
@@ -127,6 +132,8 @@ function update_script()
 
     LAST_MSG="Current script version is '$CURRENT_VERSION'.\n"
 
+    [ -z ${OPTION} ] && update_current_install $UPSTREAM_VERSION
+
     local C_VER_R="${CURRENT_VERSION//.}"
     local U_VER_R="${UPSTREAM_VERSION//.}"
 
@@ -134,7 +141,7 @@ function update_script()
         if [ "$OPTION" == "--check-only" ]; then
             LAST_MSG="\033[0;33mHEY! New tool update is available!\nSelect update option or run script with '--update' to get the latest version :)\033[0m"
         else
-            wget -O "$(pwd)/$THIS_NAME" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/easyManager.sh > /dev/null 2>&1
+            wget -O "${THIS_DIR}/$THIS_NAME" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/easyManager.sh > /dev/null 2>&1
 
             if [ $? -ne 0 ]; then
                 LAST_MSG="Error when downloading file."
@@ -248,10 +255,10 @@ if [ "${OPTIONS[1]}" == "$MARK_CHAR" ]; then
     sudo echo -e "${SOURCES_LIST[@]}" > /etc/apt/sources.list
     if [ $? ]; then
         (( FAILED_CNT++ ))
-        print_marked_msg --finished-error "Updating sources list"
+        print_marked_msg --error "Updating sources list"
     else
         log "Sources list updated:\n" "${SOURCES_LIST[*]}"
-        print_marked_msg --finished-success "Updating sources list"
+        print_marked_msg --success "Updating sources list"
     fi
 fi
 
@@ -274,7 +281,7 @@ if [ "${OPTIONS[2]}" == "$MARK_CHAR" ]; then
         gpg --fingerprint 641EED65CD4E8809
         gpg -a --export 641EED65CD4E8809 | apt-key add -
 
-        print_marked_msg --finished-success "Updating KEYs and fingerprints"
+        print_marked_msg --success "Updating KEYs and fingerprints"
     fi
 fi
 
@@ -289,7 +296,7 @@ if [ "${OPTIONS[3]}" == "$MARK_CHAR" ]; then
     sudo apt-get dist-upgrade -y
     sudo apt autoremove -y
 
-    print_marked_msg --finished-success "Starting apt-get update"
+    print_marked_msg --success "Starting apt-get update"
 fi
 
 # things to install by apt-get
@@ -335,7 +342,7 @@ if [ "${OPTIONS[4]}" == "$MARK_CHAR" ]; then
         print_marked_msg --warning "Could not fetch flashplayer from upstream"
     fi
 
-    print_marked_msg --finished-success "Installing custom apps"
+    print_marked_msg --success "Installing custom apps"
 fi
 
 # install development tools
@@ -373,7 +380,7 @@ if [ "${OPTIONS[5]}" == "$MARK_CHAR" ]; then
     sudo apt-get install -ym "${DEVELOPMENT_TO_INSTALL[@]}"
     log "Installed/updated applications:\n" "${DEVELOPMENT_TO_INSTALL[*]}"
 
-    print_marked_msg --finished-success "Installing development tools"
+    print_marked_msg --success "Installing development tools"
 fi
 
 # configure VIMnm
@@ -414,7 +421,7 @@ if [ "${OPTIONS[6]}" == "$MARK_CHAR" ]; then
     log "Removing temp files\n"
     rm -rf "$TEMP_DIR"
 
-    print_marked_msg --finished-success "Configuring VIM for $(whoami)"
+    print_marked_msg --success "Configuring VIM for $(whoami)"
 fi
 
 # install Spotify client
@@ -427,12 +434,12 @@ if [ "${OPTIONS[7]}" == "$MARK_CHAR" ]; then
     sudo echo "deb http://repository.spotify.com stable non-free" > /etc/apt/sources.list.d/spotify.list
     if [ ! $? ]; then
         (( FAILED_CNT++ ))
-        print_marked_msg --finished-error "Installing Spotify"
+        print_marked_msg --error "Installing Spotify"
     else
         sudo apt-get update
         sudo apt-get install spotify-client
 
-        print_marked_msg --finished-success "Installing Spotify"
+        print_marked_msg --success "Installing Spotify"
     fi
 fi
 
@@ -455,7 +462,7 @@ if [ "${OPTIONS[8]}" == "$MARK_CHAR" ]; then
         pip install --upgrade google-auth-oauthlib # for wifi-pumpkin
         cd $CUR_DIR 
 
-        print_marked_msg --finished-success "Installing hacking tools"
+        print_marked_msg --success "Installing hacking tools"
     fi
 fi
 
@@ -468,6 +475,60 @@ echo "$WARNING_CNT from $SELECTED_CNT tasks finished with warning."
 return 0
 }
 
+function update_current_install()
+{
+    local NEW_VERSION=${1}
+
+    [ -d "$HOME/.easyManager-$CURRENT_VERSION" ] || return 1
+
+    mv $HOME/.easyManager-$CURRENT_VERSION $HOME/.easyManager-$NEW_VERSION
+    sed -i -E "s/(easyManager-)([0-9]+\.[0-9]+\.[0-9]+)(\/essentials)/\1$NEW_VERSION\3/" "$HOME/.bashrc"
+
+    return 0
+}
+
+function do_install()
+{
+    local INSTAL_DIR="$HOME/.easyManager-$CURRENT_VERSION"
+
+    if [ -d "$INSTAL_DIR" ]; then
+        print_marked_msg --info "EasyManager is already installed."
+        return 1
+    fi
+
+    # move all required files to user's home
+    install -m 774 -D "${THIS_DIR}/${THIS_NAME}" $INSTAL_DIR/easyManager.sh
+    mkdir $INSTAL_DIR/essentials 2> /dev/null
+
+    cp "$THIS_DIR/rsc/aliases" $INSTAL_DIR/essentials/ 2> /dev/null ||
+    print_marked_msg --error "Failed to install aliases."
+
+    cp "$THIS_DIR/rsc/functions" $INSTAL_DIR/essentials/ 2> /dev/null ||
+    print_marked_msg --error "Failed to install functions."
+
+    cp "$THIS_DIR/LICENSE" $INSTAL_DIR
+
+    # edit .bashrc instead of creating symbolic links to /usr/bin
+    local BASHRC_APPEND="\n"
+    BASHRC_APPEND+="# Sources added by the LinuxEasyManager\n"
+    BASHRC_APPEND+="# Check https://github.com/Lechnio/LinuxEasyManager for more.\n"
+    BASHRC_APPEND+=" source .easyManager-$CURRENT_VERSION/essentials/aliases\n"
+    BASHRC_APPEND+=" source .easyManager-$CURRENT_VERSION/essentials/functions"
+
+    grep --quiet LinuxEasyManager $HOME/.bashrc
+    if [ $? -eq 0 ]; then
+        print_marked_msg --info "Found old version sourced in bashrc, removing..."
+        sed -i -E "s/(easyManager-)([0-9]+\.[0-9]+\.[0-9]+)(\/essentials)/\1$CURRENT_VERSION\3/" "$HOME/.bashrc"
+    else
+        echo -e ${BASHRC_APPEND} >> "$HOME/.bashrc"
+    fi
+
+    print_marked_msg --success "Bashrc modified."
+    print_marked_msg --success "Easy Manager installed in the '$INSTAL_DIR/'."
+
+    return 0
+}
+
 function main()
 {
     # args handing
@@ -478,10 +539,14 @@ function main()
                 HELP_MSG=(
                 "Usage: '$0 [option]'\n\n"
                 " -h, --help      Show this help message.\n"
+                "     --install   Install that script to use it from any place.\n"
                 " -u, --update    Updates script against git repository.\n"
                 " -V, --version   Show script version."
                 )
                 echo -e "${HELP_MSG[@]}"
+                ;;
+            "--install")
+                do_install
                 ;;
             "-u" | "--update")
                 update_script
