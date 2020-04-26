@@ -1,3 +1,9 @@
+[![release](https://img.shields.io/badge/Release-1.4.6-blue)][release]
+[![license](https://img.shields.io/github/license/Lechnio/LinuxEasyManager)][license]
+
+ [release]: https://github.com/Lechnio/LinuxEasyManager/releases/latest "Releases · Lechnio/LinuxEasyManager"
+ [license]: https://github.com/Lechnio/LinuxEasyManager/blob/develop/LICENSE "License"
+
 # Linux Easy Manager
 
 This tool is fully writed in bash script in order to simple use on other systems.
