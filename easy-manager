@@ -145,7 +145,7 @@ function update_script()
                 return 1
             fi
 
-            wget -O "${THIS_DIR}/$THIS_NAME" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/easyManager.sh > /dev/null 2>&1
+            wget -O "${THIS_DIR}/$THIS_NAME" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/easy-manager > /dev/null 2>&1
 
             if [ $? -ne 0 ]; then
                 print_marked_msg --error "Error when downloading file."
@@ -509,7 +509,7 @@ function do_install()
     fi
 
     # move all required files to user's home
-    install -m 774 -D "${THIS_DIR}/${THIS_NAME}" $INSTALL_DIR/easyManager.sh
+    install -m 774 -D "${THIS_DIR}/${THIS_NAME}" $INSTALL_DIR/easy-manager
     mkdir $INSTALL_DIR/essentials 2> /dev/null
 
     cp "$THIS_DIR/rsc/aliases" $INSTALL_DIR/essentials/ 2> /dev/null ||
