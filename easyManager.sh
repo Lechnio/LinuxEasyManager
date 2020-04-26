@@ -5,7 +5,7 @@
 #   Github: https://github.com/Lechnio   #
 ##########################################
 
-readonly CURRENT_VERSION="1.2.4"
+readonly CURRENT_VERSION="1.2.5"
 readonly THIS_NAME="$(basename "$0")"
 readonly THIS_DIR="$(pwd)/$(dirname $0)"
 
@@ -485,7 +485,7 @@ function update_current_install()
 
     [ -d  ${INSTALL_DIR} ] || return 1
 
-    if [ "${THIS_DIR}" != "${INSTALL_DIR}" ]; then
+    if [ "${THIS_DIR}" != "${INSTALL_DIR}/." ]; then
         print_marked_msg --error "Could not update this script unless other one is installed."
         print_marked_msg --info "Please run installed script instance from '$INSTALL_DIR/'."
         return 2
