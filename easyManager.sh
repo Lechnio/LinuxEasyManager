@@ -562,7 +562,8 @@ function main()
                 ;;
             "-u" | "--update")
                 update_script
-                echo -en "$LAST_MSG"
+                [ $? -ne 0 ] && LAST_MSG=${LAST_MSG::-2}    # workaround for dummy empty line printing
+                echo -e "$LAST_MSG"
                 ;;
             "-V" | "--version")
                 echo -e "$CURRENT_VERSION"
