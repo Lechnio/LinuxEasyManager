@@ -7,7 +7,7 @@
 
 readonly CURRENT_VERSION="1.2.5"
 readonly THIS_NAME="$(basename "$0")"
-readonly THIS_DIR="$(pwd)/$(dirname $0)"
+THIS_DIR="$(pwd)/$(dirname $0)"
 
 #===========================
 # customize yours tags here
@@ -120,7 +120,7 @@ function update_script()
     local TEMP_FILE=$(mktemp "/tmp/$THIS_NAME_version".XXXXX)
     wget -O "$TEMP_FILE" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/VERSION > /dev/null 2>&1
     if [ $? -ne 0 ]; then
-        LAST_MSG="Error when downloading file."
+        print_marked_msg --error "Error when downloading file."
 
         # reset output for check only case
         [ "$OPTION" == "--check-only" ] && LAST_MSG=""
@@ -148,7 +148,7 @@ function update_script()
             wget -O "${THIS_DIR}/$THIS_NAME" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/easyManager.sh > /dev/null 2>&1
 
             if [ $? -ne 0 ]; then
-                LAST_MSG="Error when downloading file."
+                print_marked_msg --error "Error when downloading file."
 
                 # reset output for check only case
                 [ "$OPTION" == "--check-only" ] && LAST_MSG=""
@@ -492,6 +492,8 @@ function update_current_install()
     fi
 
     mv $HOME/.easyManager-$CURRENT_VERSION $HOME/.easyManager-$NEW_VERSION
+    THIS_DIR="$HOME/.easyManager-$NEW_VERSION"  # update cached directory
+
     sed -i -E "s/(easyManager-)([0-9]+\.[0-9]+\.[0-9]+)(\/essentials)/\1$NEW_VERSION\3/" "$HOME/.bashrc"
 
     return 0
