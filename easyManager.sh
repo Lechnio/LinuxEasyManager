@@ -522,11 +522,11 @@ function do_install()
 
     # edit .bashrc instead of creating symbolic links to /usr/bin
     local BASHRC_APPEND="\n"
-    BASHRC_APPEND+="# Sources added by the LinuxEasyManager\n"
+    BASHRC_APPEND+="# Lines added by the LinuxEasyManager\n"
     BASHRC_APPEND+="# Check https://github.com/Lechnio/LinuxEasyManager for more.\n"
-    BASHRC_APPEND+=" PATH="$PATH:$HOME/.easyManager-$CURRENT_VERSION"\n"
-    BASHRC_APPEND+=" source .easyManager-$CURRENT_VERSION/essentials/aliases\n"
-    BASHRC_APPEND+=" source .easyManager-$CURRENT_VERSION/essentials/functions"
+    BASHRC_APPEND+="PATH="$PATH:$HOME/.easyManager-$CURRENT_VERSION"\n"
+    BASHRC_APPEND+="source .easyManager-$CURRENT_VERSION/essentials/aliases\n"
+    BASHRC_APPEND+="source .easyManager-$CURRENT_VERSION/essentials/functions"
 
     grep --quiet LinuxEasyManager $HOME/.bashrc
     if [ $? -eq 0 ]; then
