@@ -5,7 +5,7 @@
 #   Github: https://github.com/Lechnio   #
 ##########################################
 
-readonly CURRENT_VERSION="1.2.5"
+readonly CURRENT_VERSION="1.3.5"
 readonly THIS_NAME="$(basename "$0")"
 THIS_DIR="$(pwd)/$(dirname $0)"
 
@@ -541,6 +541,30 @@ function do_install()
     return 0
 }
 
+function do_uninstall()
+{
+    local INSTALL_DIR="$HOME/.easyManager-$CURRENT_VERSION"
+
+    if [ ! -d "$INSTALL_DIR" ]; then
+        print_marked_msg --warning "EasyManager is not installed."
+        return 1
+    fi
+
+    print_marked_msg --info "Removing sources from bashrc..."
+    sed -i "/LinuxEasyManager/d" "$HOME/.bashrc" 2> /dev/null
+    sed -i "/easyManager/d" "$HOME/.bashrc" 2> /dev/null
+
+    print_marked_msg --info "Removing script directory from $HOME..."
+    rm -rf "$HOME/.easyManager-$CURRENT_VERSION" 2> /dev/null
+
+    # fix multipled newlines, cause EasyManager adds some
+    sed -i '/^$/N;/^\n$/D' "$HOME/.bashrc" 2> /dev/null
+
+    print_marked_msg --success "LinuxEasyManager removed."
+
+    return 0
+}
+
 function main()
 {
     # args handing
@@ -550,15 +574,19 @@ function main()
             "-h" | "--help")
                 HELP_MSG=(
                 "Usage: '$0 [option]'\n\n"
-                " -h, --help      Show this help message.\n"
-                "     --install   Install that script to use it from any place.\n"
-                " -u, --update    Updates script against git repository.\n"
-                " -V, --version   Show script version."
+                " -h, --help        Show this help message.\n"
+                "     --install     Install that script to use it from any place.\n"
+                "     --uninstall   Uninstall previously installed script.\n"
+                " -u, --update      Updates script against git repository.\n"
+                " -V, --version     Show script version."
                 )
                 echo -e "${HELP_MSG[@]}"
                 ;;
             "--install")
                 do_install
+                ;;
+            "--uninstall")
+                do_uninstall
                 ;;
             "-u" | "--update")
                 update_script
