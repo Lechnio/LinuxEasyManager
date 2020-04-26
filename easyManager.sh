@@ -242,240 +242,240 @@ function run_selected_options()
         [ "$i" != " " ] && (( SELECTED_CNT++ ))
     done
 
-# update sources list
-if [ "${OPTIONS[1]}" == "$MARK_CHAR" ]; then
-    print_progress
-    print_marked_msg --started "Updating sources list"
+    # update sources list
+    if [ "${OPTIONS[1]}" == "$MARK_CHAR" ]; then
+        print_progress
+        print_marked_msg --started "Updating sources list"
 
-    SOURCES_LIST=(
-    "deb http://http.kali.org/kali kali-rolling main contrib non-free\n"
-    "# For source package access, uncomment the following line\n"
-    "# deb-src http://http.kali.org/kali kali-rolling main contrib non-free\n"
-    "\n"
-    "# For tlp\n"
-    "deb http://repo.linrunner.de/debian wheezy main"
-    )
+        SOURCES_LIST=(
+        "deb http://http.kali.org/kali kali-rolling main contrib non-free\n"
+        "# For source package access, uncomment the following line\n"
+        "# deb-src http://http.kali.org/kali kali-rolling main contrib non-free\n"
+        "\n"
+        "# For tlp\n"
+        "deb http://repo.linrunner.de/debian wheezy main"
+        )
 
-    sudo echo -e "${SOURCES_LIST[@]}" > /etc/apt/sources.list
-    if [ $? ]; then
-        (( FAILED_CNT++ ))
-        print_marked_msg --error "Updating sources list"
-    else
-        log "Sources list updated:\n" "${SOURCES_LIST[*]}"
-        print_marked_msg --success "Updating sources list"
-    fi
-fi
-
-# now add the KEY and fingerprint to use update
-# NOTE THIS ->>> You have to be root to have privilidge run an export
-if [ "${OPTIONS[2]}" == "$MARK_CHAR" ]; then
-    print_progress
-    print_marked_msg --started "Updating KEYs and fingerprints"
-
-    if [ "$(whoami)" != "root" ]; then
-        (( WARNING_CNT++ ))
-        print_marked_msg --warning "You are not root user! Skipping..."
-    else
-        gpg --keyserver hkp://keys.gnupg.net --recv-key 7D8D0BF6
-        gpg --fingerprint 7D8D0BF6
-        gpg -a --export 7D8D0BF6 | apt-key add -
-
-        # key for tlp
-        gpg --keyserver hkp://keys.gnupg.net --recv-key 641EED65CD4E8809
-        gpg --fingerprint 641EED65CD4E8809
-        gpg -a --export 641EED65CD4E8809 | apt-key add -
-
-        print_marked_msg --success "Updating KEYs and fingerprints"
-    fi
-fi
-
-# now run apt-get update and so one
-if [ "${OPTIONS[3]}" == "$MARK_CHAR" ]; then
-    print_progress
-    print_marked_msg --started "Starting apt-get update"
-
-    sudo apt-get clean
-    sudo apt-get update
-    sudo apt-get upgrade -y
-    sudo apt-get dist-upgrade -y
-    sudo apt autoremove -y
-
-    print_marked_msg --success "Starting apt-get update"
-fi
-
-# things to install by apt-get
-if [ "${OPTIONS[4]}" == "$MARK_CHAR" ]; then
-    print_progress
-    print_marked_msg --started "Installing custom apps"
-
-    sudo apt-get update
-
-    local LIST_TO_INSTALL=(
-    "chromium"
-    "tree"
-    "htop"
-    "lshw"
-    "hwinfo"
-    "acpi"
-    "gimp"
-    "libreoffice"
-    "tlp"
-    "tlp-rdw"
-    "alsamixergui"
-    "pavucontrol"
-    "thunderbird"
-    "transmission"
-    "proxychains"
-    "tor"
-    "unp"
-    )
-
-    sudo apt-get install -ym "${LIST_TO_INSTALL[@]}"
-    sudo tlp start          # needed for the very first time
-
-    log "Installed/updated applications:\n" "${LIST_TO_INSTALL[*]}"
-
-    log "Installing flashplayer for mozilla..."
-    wget https://raw.githubusercontent.com/cybernova/fireflashupdate/master/fireflashupdate.sh
-    if [ $? ]; then
-        chmod +x fireflashupdate.sh
-        ./fireflashupdate.sh
-        rm fireflashupdate.sh
-    else
-        (( WARNING_CNT++ ))
-        print_marked_msg --warning "Could not fetch flashplayer from upstream"
+        sudo echo -e "${SOURCES_LIST[@]}" > /etc/apt/sources.list
+        if [ $? ]; then
+            (( FAILED_CNT++ ))
+            print_marked_msg --error "Updating sources list"
+        else
+            log "Sources list updated:\n" "${SOURCES_LIST[*]}"
+            print_marked_msg --success "Updating sources list"
+        fi
     fi
 
-    print_marked_msg --success "Installing custom apps"
-fi
+    # now add the KEY and fingerprint to use update
+    # NOTE THIS ->>> You have to be root to have privilidge run an export
+    if [ "${OPTIONS[2]}" == "$MARK_CHAR" ]; then
+        print_progress
+        print_marked_msg --started "Updating KEYs and fingerprints"
 
-# install development tools
-if [ "${OPTIONS[5]}" == "$MARK_CHAR" ]; then
-    print_progress
-    print_marked_msg --started "Installing development tools"
+        if [ "$(whoami)" != "root" ]; then
+            (( WARNING_CNT++ ))
+            print_marked_msg --warning "You are not root user! Skipping..."
+        else
+            gpg --keyserver hkp://keys.gnupg.net --recv-key 7D8D0BF6
+            gpg --fingerprint 7D8D0BF6
+            gpg -a --export 7D8D0BF6 | apt-key add -
 
-    # adding 32 bit architecture
-    sudo dpkg --add-architecture i386
+            # key for tlp
+            gpg --keyserver hkp://keys.gnupg.net --recv-key 641EED65CD4E8809
+            gpg --fingerprint 641EED65CD4E8809
+            gpg -a --export 641EED65CD4E8809 | apt-key add -
 
-    sudo apt-get update
+            print_marked_msg --success "Updating KEYs and fingerprints"
+        fi
+    fi
 
-    local DEVELOPMENT_TO_INSTALL=(
-    "cmake"
-    "meson"
-#   "qtcreator"
-#   "libqtcore4"
-#   "libqtcore4:i386"
-#   "libqtgui4"
-#   "libqtgui4:i386"
-#   "libgl1-mesa-dev"       #for QTCreator
-#   "libgl1-mesa-dev:i386"      #for QTCreator
-#   "kdesvn"            #svn graphic interface
-    "build-essential"
-    "pkg-config"
-    "bison"
-    "flex"
+    # now run apt-get update and so one
+    if [ "${OPTIONS[3]}" == "$MARK_CHAR" ]; then
+        print_progress
+        print_marked_msg --started "Starting apt-get update"
 
-    # yocto
-    "chrpath"
-    "diffstat"
-    )
-
-    sudo apt-get install -ym "${DEVELOPMENT_TO_INSTALL[@]}"
-    log "Installed/updated applications:\n" "${DEVELOPMENT_TO_INSTALL[*]}"
-
-    print_marked_msg --success "Installing development tools"
-fi
-
-# configure VIMnm
-if [ "${OPTIONS[6]}" == "$MARK_CHAR" ]; then
-    print_progress
-    print_marked_msg --started "Configuring VIM for $(whoami)"
-
-    local TEMP_DIR=$(mktemp -d "/tmp/$THIS_NAME".XXXXX)
-    local REQUIRMENTS=("vim-gtk3" "libreadline-dev" "cmake")
-
-    log "Checking requirments for Clewn:\n" "${REQUIRMENTS[*]}"
-    sudo apt-get install -ym "${REQUIRMENTS[@]}"
-
-    log "Removing old plugins\n"
-    sudo rm -rf ~/.vim
-
-    log "Configuring new plugins\n"
-    git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
-    git clone https://github.com/Lechnio/VIM-settings.git "$TEMP_DIR"/
-    mv "$TEMP_DIR"/.vimrc ~/
-    mv "$TEMP_DIR"/.ycm_extra_conf.py ~/.vim/
-    VIM_VER=$(ls /usr/share/vim/ | grep -E "^vim[0-9]+$")
-    VIM_VER=${VIM_VER##*[[:space:]]}
-    sudo mv "$TEMP_DIR"/kali.vim /usr/share/vim/$VIM_VER/colors/
-    vim +PluginInstall +qall
-    sudo python3 ~/.vim/bundle/YouCompleteMe/install.py --clang-completer # use --all instead to use with all lenguages
-
-    log "Configuring Clewn debuger\n"
-    tar -xvzf "$TEMP_DIR"/clewn-1.15.tar.gz -C "$TEMP_DIR"
-    (cd "$TEMP_DIR"/clewn-1.15/ && ./configure)
-    (cd "$TEMP_DIR"/clewn-1.15/ && make)
-    (cd "$TEMP_DIR"/clewn-1.15/ && sudo make install)
-    mkdir -p ~/.vim/plugin/ && cp /usr/local/share/vim/vimfiles/clewn.vim ~/.vim/plugin/
-    mkdir -p ~/.vim/doc/ && cp /usr/local/share/vim/vimfiles/doc/clewn.txt ~/.vim/doc/
-    mkdir -p ~/.vim/macros/ && cp /usr/local/share/vim/vimfiles/macros/clewn_mappings.vim  ~/.vim/macros/
-    mkdir -p ~/.vim/syntax/ && cp /usr/local/share/vim/vimfiles/syntax/gdbvar.vim ~/.vim/syntax/
-
-    log "Removing temp files\n"
-    rm -rf "$TEMP_DIR"
-
-    print_marked_msg --success "Configuring VIM for $(whoami)"
-fi
-
-# install Spotify client
-if [ "${OPTIONS[7]}" == "$MARK_CHAR" ]; then
-    print_progress
-    print_marked_msg --started "Installing Spotify"
-
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 931FF8E79F0876134EDDBDCCA87FF9DF48BF1C90
-    sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 4773BD5E130D1D45
-    sudo echo "deb http://repository.spotify.com stable non-free" > /etc/apt/sources.list.d/spotify.list
-    if [ ! $? ]; then
-        (( FAILED_CNT++ ))
-        print_marked_msg --error "Installing Spotify"
-    else
+        sudo apt-get clean
         sudo apt-get update
-        sudo apt-get install spotify-client
+        sudo apt-get upgrade -y
+        sudo apt-get dist-upgrade -y
+        sudo apt autoremove -y
 
-        print_marked_msg --success "Installing Spotify"
+        print_marked_msg --success "Starting apt-get update"
     fi
-fi
 
-# install extra hacking tools
-if [ "${OPTIONS[8]}" == "$MARK_CHAR" ]; then
-    print_progress
-    print_marked_msg --started "Installing hacking tools"
+    # things to install by apt-get
+    if [ "${OPTIONS[4]}" == "$MARK_CHAR" ]; then
+        print_progress
+        print_marked_msg --started "Installing custom apps"
 
-    if [ "$(whoami)" != "root" ]; then
-        (( WARNING_CNT++ ))
-        print_marked_msg --warning "You are not root user! Skipping..."
-    else
-        local CUR_DIR=$(pwd)
-        cd
-        git clone https://github.com/arismelachroinos/lscript.git
-        cd lscript
-        chmod +x install.sh
-        ./install.sh
+        sudo apt-get update
 
-        pip install --upgrade google-auth-oauthlib # for wifi-pumpkin
-        cd $CUR_DIR 
+        local LIST_TO_INSTALL=(
+        "chromium"
+        "tree"
+        "htop"
+        "lshw"
+        "hwinfo"
+        "acpi"
+        "gimp"
+        "libreoffice"
+        "tlp"
+        "tlp-rdw"
+        "alsamixergui"
+        "pavucontrol"
+        "thunderbird"
+        "transmission"
+        "proxychains"
+        "tor"
+        "unp"
+        )
 
-        print_marked_msg --success "Installing hacking tools"
+        sudo apt-get install -ym "${LIST_TO_INSTALL[@]}"
+        sudo tlp start          # needed for the very first time
+
+        log "Installed/updated applications:\n" "${LIST_TO_INSTALL[*]}"
+
+        log "Installing flashplayer for mozilla..."
+        wget https://raw.githubusercontent.com/cybernova/fireflashupdate/master/fireflashupdate.sh
+        if [ $? ]; then
+            chmod +x fireflashupdate.sh
+            ./fireflashupdate.sh
+            rm fireflashupdate.sh
+        else
+            (( WARNING_CNT++ ))
+            print_marked_msg --warning "Could not fetch flashplayer from upstream"
+        fi
+
+        print_marked_msg --success "Installing custom apps"
     fi
-fi
 
-echo "*************************"
-echo "  All options proceeded  "
-echo "*************************"
-echo "$FAILED_CNT from $SELECTED_CNT tasks failed."
-echo "$WARNING_CNT from $SELECTED_CNT tasks finished with warning." 
+    # install development tools
+    if [ "${OPTIONS[5]}" == "$MARK_CHAR" ]; then
+        print_progress
+        print_marked_msg --started "Installing development tools"
 
-return 0
+        # adding 32 bit architecture
+        sudo dpkg --add-architecture i386
+
+        sudo apt-get update
+
+        local DEVELOPMENT_TO_INSTALL=(
+        "cmake"
+        "meson"
+#       "qtcreator"
+#       "libqtcore4"
+#       "libqtcore4:i386"
+#       "libqtgui4"
+#       "libqtgui4:i386"
+#       "libgl1-mesa-dev"           #for QTCreator
+#       "libgl1-mesa-dev:i386"      #for QTCreator
+#       "kdesvn"                    #svn graphic interface
+        "build-essential"
+        "pkg-config"
+        "bison"
+        "flex"
+
+        # yocto
+        "chrpath"
+        "diffstat"
+        )
+
+        sudo apt-get install -ym "${DEVELOPMENT_TO_INSTALL[@]}"
+        log "Installed/updated applications:\n" "${DEVELOPMENT_TO_INSTALL[*]}"
+
+        print_marked_msg --success "Installing development tools"
+    fi
+
+    # configure VIMnm
+    if [ "${OPTIONS[6]}" == "$MARK_CHAR" ]; then
+        print_progress
+        print_marked_msg --started "Configuring VIM for $(whoami)"
+
+        local TEMP_DIR=$(mktemp -d "/tmp/$THIS_NAME".XXXXX)
+        local REQUIRMENTS=("vim-gtk3" "libreadline-dev" "cmake")
+
+        log "Checking requirments for Clewn:\n" "${REQUIRMENTS[*]}"
+        sudo apt-get install -ym "${REQUIRMENTS[@]}"
+
+        log "Removing old plugins\n"
+        sudo rm -rf ~/.vim
+
+        log "Configuring new plugins\n"
+        git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+        git clone https://github.com/Lechnio/VIM-settings.git "$TEMP_DIR"/
+        mv "$TEMP_DIR"/.vimrc ~/
+        mv "$TEMP_DIR"/.ycm_extra_conf.py ~/.vim/
+        VIM_VER=$(ls /usr/share/vim/ | grep -E "^vim[0-9]+$")
+        VIM_VER=${VIM_VER##*[[:space:]]}
+        sudo mv "$TEMP_DIR"/kali.vim /usr/share/vim/$VIM_VER/colors/
+        vim +PluginInstall +qall
+        sudo python3 ~/.vim/bundle/YouCompleteMe/install.py --clang-completer # use --all instead to use with all lenguages
+
+        log "Configuring Clewn debuger\n"
+        tar -xvzf "$TEMP_DIR"/clewn-1.15.tar.gz -C "$TEMP_DIR"
+        (cd "$TEMP_DIR"/clewn-1.15/ && ./configure)
+        (cd "$TEMP_DIR"/clewn-1.15/ && make)
+        (cd "$TEMP_DIR"/clewn-1.15/ && sudo make install)
+        mkdir -p ~/.vim/plugin/ && cp /usr/local/share/vim/vimfiles/clewn.vim ~/.vim/plugin/
+        mkdir -p ~/.vim/doc/ && cp /usr/local/share/vim/vimfiles/doc/clewn.txt ~/.vim/doc/
+        mkdir -p ~/.vim/macros/ && cp /usr/local/share/vim/vimfiles/macros/clewn_mappings.vim  ~/.vim/macros/
+        mkdir -p ~/.vim/syntax/ && cp /usr/local/share/vim/vimfiles/syntax/gdbvar.vim ~/.vim/syntax/
+
+        log "Removing temp files\n"
+        rm -rf "$TEMP_DIR"
+
+        print_marked_msg --success "Configuring VIM for $(whoami)"
+    fi
+
+    # install Spotify client
+    if [ "${OPTIONS[7]}" == "$MARK_CHAR" ]; then
+        print_progress
+        print_marked_msg --started "Installing Spotify"
+
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 931FF8E79F0876134EDDBDCCA87FF9DF48BF1C90
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 4773BD5E130D1D45
+        sudo echo "deb http://repository.spotify.com stable non-free" > /etc/apt/sources.list.d/spotify.list
+        if [ ! $? ]; then
+            (( FAILED_CNT++ ))
+            print_marked_msg --error "Installing Spotify"
+        else
+            sudo apt-get update
+            sudo apt-get install spotify-client
+
+            print_marked_msg --success "Installing Spotify"
+        fi
+    fi
+
+    # install extra hacking tools
+    if [ "${OPTIONS[8]}" == "$MARK_CHAR" ]; then
+        print_progress
+        print_marked_msg --started "Installing hacking tools"
+
+        if [ "$(whoami)" != "root" ]; then
+            (( WARNING_CNT++ ))
+            print_marked_msg --warning "You are not root user! Skipping..."
+        else
+            local CUR_DIR=$(pwd)
+            cd
+            git clone https://github.com/arismelachroinos/lscript.git
+            cd lscript
+            chmod +x install.sh
+            ./install.sh
+
+            pip install --upgrade google-auth-oauthlib # for wifi-pumpkin
+            cd $CUR_DIR 
+
+            print_marked_msg --success "Installing hacking tools"
+        fi
+    fi
+
+    echo "*************************"
+    echo "  All options proceeded  "
+    echo "*************************"
+    echo "$FAILED_CNT from $SELECTED_CNT tasks failed."
+    echo "$WARNING_CNT from $SELECTED_CNT tasks finished with warning." 
+
+    return 0
 }
 
 function update_current_install()
