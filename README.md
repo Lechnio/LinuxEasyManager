@@ -8,9 +8,20 @@
 
 This tool is fully writed in bash script in order to simple use on other systems.
 
+## Requirements
+
+ * [Bash 4+][bash]
+ * [Git][git]
+ * [Apt][apt]
+
+ [bash]: https://www.gnu.org/software/bash/ "GNU Bash"
+ [git]: https://git-scm.com/ "Git"
+ [apt]: https://launchpad.net/ubuntu/trusty/+package/apt "Apt package manager"
+
 ## Getting Started
 
-`easyManager.sh` has no special dependencies, but it is highly recommended to use it with **Debian**, **Ubuntu** or **Kali** linux distributions.
+It is highly recommended to use `easyManager.sh` with **Debian**, **Ubuntu** or **Kali** linux distributions.
+The program has not been tested on other distributions.
 
 Current stable release can be accessed on the master branch.
 
