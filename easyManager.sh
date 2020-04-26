@@ -5,7 +5,7 @@
 #   Github: https://github.com/Lechnio   #
 ##########################################
 
-readonly CURRENT_VERSION="1.4.5"
+readonly CURRENT_VERSION="1.4.6"
 readonly THIS_NAME="$(basename "$0")"
 THIS_DIR="$(pwd)/$(dirname $0)"
 
@@ -524,13 +524,14 @@ function do_install()
     local BASHRC_APPEND="\n"
     BASHRC_APPEND+="# Sources added by the LinuxEasyManager\n"
     BASHRC_APPEND+="# Check https://github.com/Lechnio/LinuxEasyManager for more.\n"
+    BASHRC_APPEND+=" PATH="$PATH:$HOME/.easyManager-$CURRENT_VERSION"\n"
     BASHRC_APPEND+=" source .easyManager-$CURRENT_VERSION/essentials/aliases\n"
     BASHRC_APPEND+=" source .easyManager-$CURRENT_VERSION/essentials/functions"
 
     grep --quiet LinuxEasyManager $HOME/.bashrc
     if [ $? -eq 0 ]; then
         print_marked_msg --info "Found old version sourced in bashrc, removing..."
-        sed -i -E "s/(easyManager-)([0-9]+\.[0-9]+\.[0-9]+)(\/essentials)/\1$CURRENT_VERSION\3/" "$HOME/.bashrc"
+        sed -i -E "s/(easyManager-)([0-9]+\.[0-9]+\.[0-9]+)/\1$CURRENT_VERSION/" "$HOME/.bashrc"
     else
         echo -e ${BASHRC_APPEND} >> "$HOME/.bashrc"
     fi
