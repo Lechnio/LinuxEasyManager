@@ -374,7 +374,6 @@ if [ "${OPTIONS[5]}" == "$MARK_CHAR" ]; then
     # yocto
     "chrpath"
     "diffstat"
-    "textinfo"
     )
 
     sudo apt-get install -ym "${DEVELOPMENT_TO_INSTALL[@]}"
