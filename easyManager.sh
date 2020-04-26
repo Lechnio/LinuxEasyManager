@@ -5,7 +5,7 @@
 #   Github: https://github.com/Lechnio   #
 ##########################################
 
-readonly CURRENT_VERSION="1.2.3"
+readonly CURRENT_VERSION="1.2.4"
 readonly THIS_NAME="$(basename "$0")"
 readonly THIS_DIR="$(pwd)/$(dirname $0)"
 
@@ -132,8 +132,6 @@ function update_script()
 
     LAST_MSG="Current script version is '$CURRENT_VERSION'.\n"
 
-    [ -z ${OPTION} ] && update_current_install $UPSTREAM_VERSION
-
     local C_VER_R="${CURRENT_VERSION//.}"
     local U_VER_R="${UPSTREAM_VERSION//.}"
 
@@ -141,6 +139,12 @@ function update_script()
         if [ "$OPTION" == "--check-only" ]; then
             LAST_MSG="\033[0;33mHEY! New tool update is available!\nSelect update option or run script with '--update' to get the latest version :)\033[0m"
         else
+            update_current_install $UPSTREAM_VERSION
+            if [ $? -eq 2 ]; then
+                rm "$TEMP_FILE"
+                return 1
+            fi
+
             wget -O "${THIS_DIR}/$THIS_NAME" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/easyManager.sh > /dev/null 2>&1
 
             if [ $? -ne 0 ]; then
@@ -477,8 +481,15 @@ return 0
 function update_current_install()
 {
     local NEW_VERSION=${1}
+    local INSTALL_DIR="$HOME/.easyManager-$CURRENT_VERSION"
 
-    [ -d "$HOME/.easyManager-$CURRENT_VERSION" ] || return 1
+    [ -d  ${INSTALL_DIR} ] || return 1
+
+    if [ "${THIS_DIR}" != "${INSTALL_DIR}" ]; then
+        print_marked_msg --error "Could not update this script unless other one is installed."
+        print_marked_msg --info "Please run installed script instance from '$INSTALL_DIR/'."
+        return 2
+    fi
 
     mv $HOME/.easyManager-$CURRENT_VERSION $HOME/.easyManager-$NEW_VERSION
     sed -i -E "s/(easyManager-)([0-9]+\.[0-9]+\.[0-9]+)(\/essentials)/\1$NEW_VERSION\3/" "$HOME/.bashrc"
@@ -488,24 +499,24 @@ function update_current_install()
 
 function do_install()
 {
-    local INSTAL_DIR="$HOME/.easyManager-$CURRENT_VERSION"
+    local INSTALL_DIR="$HOME/.easyManager-$CURRENT_VERSION"
 
-    if [ -d "$INSTAL_DIR" ]; then
+    if [ -d "$INSTALL_DIR" ]; then
         print_marked_msg --info "EasyManager is already installed."
         return 1
     fi
 
     # move all required files to user's home
-    install -m 774 -D "${THIS_DIR}/${THIS_NAME}" $INSTAL_DIR/easyManager.sh
-    mkdir $INSTAL_DIR/essentials 2> /dev/null
+    install -m 774 -D "${THIS_DIR}/${THIS_NAME}" $INSTALL_DIR/easyManager.sh
+    mkdir $INSTALL_DIR/essentials 2> /dev/null
 
-    cp "$THIS_DIR/rsc/aliases" $INSTAL_DIR/essentials/ 2> /dev/null ||
+    cp "$THIS_DIR/rsc/aliases" $INSTALL_DIR/essentials/ 2> /dev/null ||
     print_marked_msg --error "Failed to install aliases."
 
-    cp "$THIS_DIR/rsc/functions" $INSTAL_DIR/essentials/ 2> /dev/null ||
+    cp "$THIS_DIR/rsc/functions" $INSTALL_DIR/essentials/ 2> /dev/null ||
     print_marked_msg --error "Failed to install functions."
 
-    cp "$THIS_DIR/LICENSE" $INSTAL_DIR
+    cp "$THIS_DIR/LICENSE" $INSTALL_DIR
 
     # edit .bashrc instead of creating symbolic links to /usr/bin
     local BASHRC_APPEND="\n"
@@ -523,7 +534,7 @@ function do_install()
     fi
 
     print_marked_msg --success "Bashrc modified."
-    print_marked_msg --success "Easy Manager installed in the '$INSTAL_DIR/'."
+    print_marked_msg --success "Easy Manager installed in the '$INSTALL_DIR/'."
 
     return 0
 }
@@ -549,7 +560,7 @@ function main()
                 ;;
             "-u" | "--update")
                 update_script
-                echo -e "$LAST_MSG"
+                echo -en "$LAST_MSG"
                 ;;
             "-V" | "--version")
                 echo -e "$CURRENT_VERSION"
