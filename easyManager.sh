@@ -5,7 +5,7 @@
 #   Github: https://github.com/Lechnio   #
 ##########################################
 
-readonly CURRENT_VERSION="1.3.5"
+readonly CURRENT_VERSION="1.4.5"
 readonly THIS_NAME="$(basename "$0")"
 THIS_DIR="$(pwd)/$(dirname $0)"
 

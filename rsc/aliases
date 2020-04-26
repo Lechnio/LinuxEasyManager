@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Base
+alias ll='ls -l'
+alias la='ls -lA'
+alias grep='grep --color=auto'
+
+# Git
+alias gitst='git status'
+alias gitlog='git log --all --decorate --oneline --graph'
+alias gitreset='git reset --soft HEAD~1'

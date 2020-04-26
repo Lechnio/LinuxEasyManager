@@ -1,0 +1,60 @@
+#!/bin/bash
+
+function easy-cp()
+{
+    local FROM="$1"
+    local WHAT="$2"
+    local WHERE="$3"
+
+    if [ $# -ne 3 ]; then
+        echo "Incorrect usage!"
+        echo "Try:"
+        echo -e "${FUNCNAME[0]} [path_from] [your_regex] [dest_path]\n"
+        echo -e "Example:\n${FUNCNAME[0]} ./C++_projects/killer *.cpp /media/root/external_usb_stick/"
+        return 1
+    fi
+
+    if [ ! -d "$FROM" ]; then
+        echo "Source directory does not exists!"
+        return 2
+    fi
+
+    mkdir -p $WHERE
+    find "$FROM" -name "$WHAT" -exec cp --parents '{}' "$WHERE" \;
+
+    return 0
+}
+
+function easy-backup()
+{
+    local SRC_PATHS=(
+    "$HOME/Documents/notatki"
+    "$HOME/Documents/studies"
+    "$HOME/Documents/work"
+    "$HOME/Desktop/wifi"
+    "$HOME/Pictures"
+    "$HOME/fast_notes.txt"
+    "$HOME/.bash_history"
+    "$HOME/.bashrc"
+    )
+
+    local BACKUP_PATH="/media/kali/PWR/backup_files/"
+    local MNT_POINT="$(df -h /media/kali/PWR | grep -v Filesystem)"
+    local MNT_POINT=${MNT_POINT%%  *}
+
+    if [ ! -d "$BACKUP_PATH" ]; then
+        echo "Backup path does not exist. Maybe pendrive is not mounted?"
+        return 1
+    fi
+
+    rsync -ulrvPR --delete "${SRC_PATHS[@]}" "$BACKUP_PATH"
+    [ $? -ne 0 ] && return 2
+
+    echo "Eject pendrive on '$MNT_POINT'? [y/n]"
+    local OPT
+    read OPT
+
+    [ "$OPT" == "y" ] && sudo eject "$MNT_POINT"
+
+    return 0
+}
