@@ -5,7 +5,7 @@
 #   Github: https://github.com/Lechnio   #
 ##########################################
 
-readonly CURRENT_VERSION="1.4.6"
+readonly CURRENT_VERSION="1.4.7"
 readonly THIS_NAME="$(basename "$0")"
 THIS_DIR="$(pwd)/$(dirname $0)"
 
@@ -145,7 +145,10 @@ function update_script()
                 return 1
             fi
 
+            mkdir "$THIS_DIR/essentials" &> /dev/null
             wget -O "${THIS_DIR}/$THIS_NAME" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/easy-manager > /dev/null 2>&1
+            wget -O "${THIS_DIR}/essentials/aliases" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/rsc/aliases > /dev/null 2>&1
+            wget -O "${THIS_DIR}/essentials/functions" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/rsc/functions > /dev/null 2>&1
 
             if [ $? -ne 0 ]; then
                 print_marked_msg --error "Error when downloading file."
