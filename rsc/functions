@@ -58,3 +58,19 @@ function easy-backup()
 
     return 0
 }
+
+function easy-change-txpower()
+{
+    if [ $# -ne 2 ]; then
+        echo "Bad usage. Try $0 [interface] [power]"
+        return 1
+    fi
+
+    iw reg set BZ
+    ip link set $1 down
+    iw dev $1 set txpower fixed $2mBm
+    ip link set $1 up
+    iw dev
+
+    return 0
+}
