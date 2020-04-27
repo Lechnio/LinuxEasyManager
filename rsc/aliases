@@ -1,9 +1,19 @@
 #!/bin/bash
 
+# Remove
+unalias ll
+unalias la
+unalias grep
+
 # Base
 alias ll='ls -l'
 alias la='ls -lA'
 alias grep='grep --color=auto'
+alias greph='history | grep'
+alias cls='clear'
+alias untar='tar -xvf'
+alias untargz='tar -zxvf'
+alias untarbz='tar -jxvf'
 
 # Git
 alias gitst='git status'
