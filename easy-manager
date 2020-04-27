@@ -166,6 +166,14 @@ function update_script()
     else
         LAST_MSG+="You are up to date."
 
+        if [ "$OPTION" == "--force" ]; then
+            mkdir "$THIS_DIR/essentials" &> /dev/null
+            wget -O "${THIS_DIR}/$THIS_NAME" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/easy-manager > /dev/null 2>&1
+            wget -O "${THIS_DIR}/essentials/aliases" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/rsc/aliases > /dev/null 2>&1
+            wget -O "${THIS_DIR}/essentials/functions" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/rsc/functions > /dev/null 2>&1
+            print_marked_msg --info "Forced update, all files have been overwritten."
+        fi
+
         [ "$OPTION" == "--check-only" ] && LAST_MSG=""
     fi
 
@@ -586,11 +594,12 @@ function main()
             "-h" | "--help")
                 HELP_MSG=(
                 "Usage: '$0 [option]'\n\n"
-                " -h, --help        Show this help message.\n"
-                "     --install     Install that script to use it from any place.\n"
-                "     --uninstall   Uninstall previously installed script.\n"
-                " -u, --update      Updates script against git repository.\n"
-                " -V, --version     Show script version."
+                " -h, --help          Show this help message.\n"
+                "     --install       Install that script to use it from any place.\n"
+                "     --uninstall     Uninstall previously installed script.\n"
+                " -u, --update        Updates script against git repository.\n"
+                "     --update-force  Performs files update without version checking.\n"
+                " -V, --version       Show script version."
                 )
                 echo -e "${HELP_MSG[@]}"
                 ;;
@@ -603,6 +612,11 @@ function main()
             "-u" | "--update")
                 update_script
                 [ $? -ne 0 ] && LAST_MSG=${LAST_MSG::-2}    # workaround for dummy empty line printing
+                echo -e "$LAST_MSG"
+                ;;
+            "--update-force")
+                update_script --force
+                [ $? -ne 0 ] && LAST_MSG=${LAST_MSG::-2}
                 echo -e "$LAST_MSG"
                 ;;
             "-V" | "--version")
