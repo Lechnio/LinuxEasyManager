@@ -5,7 +5,7 @@
 #   Github: https://github.com/Lechnio   #
 ##########################################
 
-readonly CURRENT_VERSION="1.4.7"
+readonly CURRENT_VERSION="1.4.8"
 readonly THIS_NAME="$(basename "$0")"
 THIS_DIR="$(pwd)/$(dirname $0)"
 
@@ -395,7 +395,13 @@ function run_selected_options()
         print_marked_msg --started "Configuring VIM for $(whoami)"
 
         local TEMP_DIR=$(mktemp -d "/tmp/$THIS_NAME".XXXXX)
-        local REQUIRMENTS=("vim-gtk3" "libreadline-dev" "cmake")
+        local REQUIRMENTS=(
+        "vim-gtk3"
+        "libreadline-dev"
+        "libncurses5-dev"
+        "libncursesw5-dev"
+        "cmake"
+        )
 
         log "Checking requirments for Clewn:\n" "${REQUIRMENTS[*]}"
         sudo apt-get install -ym "${REQUIRMENTS[@]}"
@@ -414,11 +420,11 @@ function run_selected_options()
         vim +PluginInstall +qall
         sudo python3 ~/.vim/bundle/YouCompleteMe/install.py --clang-completer # use --all instead to use with all lenguages
 
-        log "Configuring Clewn debuger\n"
+        log "Configuring Clewn debuger...\n"
         tar -xvzf "$TEMP_DIR"/clewn-1.15.tar.gz -C "$TEMP_DIR"
-        (cd "$TEMP_DIR"/clewn-1.15/ && ./configure)
-        (cd "$TEMP_DIR"/clewn-1.15/ && make)
-        (cd "$TEMP_DIR"/clewn-1.15/ && sudo make install)
+        (cd "$TEMP_DIR"/clewn-1.15/ && ./configure) || print_marked_msg --error "Configure step for clewn failed."
+        (cd "$TEMP_DIR"/clewn-1.15/ && make) || print_marked_msg --error "Make step for clewn failed."
+        (cd "$TEMP_DIR"/clewn-1.15/ && sudo make install) || print_marked_msg --error "Install step for clewn failed."
         mkdir -p ~/.vim/plugin/ && cp /usr/local/share/vim/vimfiles/clewn.vim ~/.vim/plugin/
         mkdir -p ~/.vim/doc/ && cp /usr/local/share/vim/vimfiles/doc/clewn.txt ~/.vim/doc/
         mkdir -p ~/.vim/macros/ && cp /usr/local/share/vim/vimfiles/macros/clewn_mappings.vim  ~/.vim/macros/
