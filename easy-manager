@@ -5,7 +5,7 @@
 #   Github: https://github.com/Lechnio   #
 ##########################################
 
-readonly CURRENT_VERSION="1.4.9"
+readonly CURRENT_VERSION="1.4.10"
 readonly THIS_NAME="$(basename "$0")"
 THIS_DIR="$(pwd)/$(dirname $0)"
 test -f "$(pwd)/easy-manager" && THIS_DIR=${THIS_DIR::-2}
@@ -543,7 +543,7 @@ function do_install()
     local BASHRC_APPEND="\n"
     BASHRC_APPEND+="# Lines added by the LinuxEasyManager\n"
     BASHRC_APPEND+="# Check https://github.com/Lechnio/LinuxEasyManager for more.\n"
-    BASHRC_APPEND+="PATH="$PATH:$HOME/.easyManager-$CURRENT_VERSION"\n"
+    BASHRC_APPEND+="PATH="\$PATH:$HOME/.easyManager-$CURRENT_VERSION"\n"
     BASHRC_APPEND+="source .easyManager-$CURRENT_VERSION/essentials/aliases\n"
     BASHRC_APPEND+="source .easyManager-$CURRENT_VERSION/essentials/functions"
 
