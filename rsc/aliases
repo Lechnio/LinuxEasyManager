@@ -14,6 +14,8 @@ alias cls='clear'
 alias untar='tar -xvf'
 alias untargz='tar -zxvf'
 alias untarbz='tar -jxvf'
+alias cds='EASY_SAVED_PWD="$(pwd)"'
+alias cdb='cd "$EASY_SAVED_PWD"'
 
 # Git
 alias gitst='git status'
