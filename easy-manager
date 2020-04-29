@@ -5,10 +5,9 @@
 #   Github: https://github.com/Lechnio   #
 ##########################################
 
-readonly CURRENT_VERSION="1.4.10"
+readonly CURRENT_VERSION="1.4.11"
 readonly THIS_NAME="$(basename "$0")"
-THIS_DIR="$(pwd)/$(dirname $0)"
-test -f "$(pwd)/easy-manager" && THIS_DIR=${THIS_DIR::-2}
+THIS_DIR="$(realpath -s $0)" && THIS_DIR=${THIS_DIR%/$THIS_NAME}
 
 #===========================
 # customize yours tags here
@@ -513,7 +512,7 @@ function update_current_install()
     mv $HOME/.easyManager-$CURRENT_VERSION $HOME/.easyManager-$NEW_VERSION
     THIS_DIR="$HOME/.easyManager-$NEW_VERSION"  # update cached directory
 
-    sed -i -E "s/(easyManager-)([0-9]+\.[0-9]+\.[0-9]+)(\/essentials)/\1$NEW_VERSION\3/" "$HOME/.bashrc"
+    sed -i -E "s/(easyManager-)([0-9]+\.[0-9]+\.[0-9]+)/\1$CURRENT_VERSION/" "$HOME/.bashrc"
 
     return 0
 }
@@ -544,8 +543,8 @@ function do_install()
     BASHRC_APPEND+="# Lines added by the LinuxEasyManager\n"
     BASHRC_APPEND+="# Check https://github.com/Lechnio/LinuxEasyManager for more.\n"
     BASHRC_APPEND+="PATH="\$PATH:$HOME/.easyManager-$CURRENT_VERSION"\n"
-    BASHRC_APPEND+="source .easyManager-$CURRENT_VERSION/essentials/aliases\n"
-    BASHRC_APPEND+="source .easyManager-$CURRENT_VERSION/essentials/functions"
+    BASHRC_APPEND+="source $HOME/.easyManager-$CURRENT_VERSION/essentials/aliases\n"
+    BASHRC_APPEND+="source $HOME/.easyManager-$CURRENT_VERSION/essentials/functions"
 
     grep --quiet LinuxEasyManager $HOME/.bashrc
     if [ $? -eq 0 ]; then
