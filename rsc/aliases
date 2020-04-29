@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Remove
-unalias ll
-unalias la
-unalias grep
+(alias | grep -q "alias ll") && unalias ll
+(alias | grep -q "alias la") && unalias la
+(alias | grep -q "alias grep") && unalias grep
 
 # Base
 alias ll='ls -l'
