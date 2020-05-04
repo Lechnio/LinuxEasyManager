@@ -1,5 +1,10 @@
 #!/bin/bash
 
+##########################################
+#   Author: Jakub Frąckiewicz            #
+#   Github: https://github.com/Lechnio   #
+##########################################
+
 function easy-cp()
 {
     local FROM="$1"
