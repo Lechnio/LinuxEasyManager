@@ -5,7 +5,7 @@
 #   Github: https://github.com/Lechnio   #
 ##########################################
 
-readonly CURRENT_VERSION="1.4.11"
+readonly CURRENT_VERSION="1.4.12"
 readonly THIS_NAME="$(basename "$0")"
 THIS_DIR="$(realpath -s $0)" && THIS_DIR=${THIS_DIR%/$THIS_NAME}
 
@@ -170,6 +170,8 @@ function update_script()
             wget -O "${THIS_DIR}/$THIS_NAME" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/easy-manager > /dev/null 2>&1
             wget -O "${THIS_DIR}/essentials/aliases" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/rsc/aliases > /dev/null 2>&1
             wget -O "${THIS_DIR}/essentials/functions" https://raw.githubusercontent.com/Lechnio/LinuxEasyManager/master/rsc/functions > /dev/null 2>&1
+            update_current_install $UPSTREAM_VERSION
+
             print_marked_msg --info "Forced update, all files have been overwritten."
         fi
 
@@ -501,10 +503,10 @@ function update_current_install()
         return 2
     fi
 
-    mv $HOME/.easyManager-$CURRENT_VERSION $HOME/.easyManager-$NEW_VERSION
+    mv $HOME/.easyManager-$CURRENT_VERSION $HOME/.easyManager-$NEW_VERSION 2> /dev/null
     THIS_DIR="$HOME/.easyManager-$NEW_VERSION"  # update cached directory
 
-    sed -i -E "s/(easyManager-)([0-9]+\.[0-9]+\.[0-9]+)/\1$CURRENT_VERSION/" "$HOME/.bashrc"
+    sed -i -E "s/(easyManager-)([0-9]+\.[0-9]+\.[0-9]+)/\1$NEW_VERSION/" "$HOME/.bashrc"
 
     return 0
 }
