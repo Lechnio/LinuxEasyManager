@@ -21,6 +21,8 @@ alias untargz='tar -zxvf'
 alias untarbz='tar -jxvf'
 alias cds='EASY_SAVED_PWD="$(pwd)"'
 alias cdb='cd "$EASY_SAVED_PWD"'
+alias findd='find . -name'
+alias :q='exit'
 
 # Git
 alias gitst='git status'
