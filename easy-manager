@@ -408,8 +408,10 @@ function run_selected_options()
         "libreadline-dev"
         "libncurses5-dev"
         "libncursesw5-dev"
+        "build-essential"
         "python3-dev"
         "cmake"
+        "vim"
         )
 
         log "Checking requirments for Clewn:\n" "${REQUIRMENTS[*]}"
@@ -428,16 +430,6 @@ function run_selected_options()
         sudo mv "$TEMP_DIR"/kali.vim /usr/share/vim/$VIM_VER/colors/
         vim +PluginInstall +qall
         sudo python3 ~/.vim/bundle/YouCompleteMe/install.py --clang-completer # use --all instead to use with all lenguages
-
-        log "Configuring Clewn debuger...\n"
-        tar -xvzf "$TEMP_DIR"/clewn-1.15.tar.gz -C "$TEMP_DIR"
-        (cd "$TEMP_DIR"/clewn-1.15/ && ./configure) || print_marked_msg --error "Configure step for clewn failed."
-        (cd "$TEMP_DIR"/clewn-1.15/ && make) || print_marked_msg --error "Make step for clewn failed."
-        (cd "$TEMP_DIR"/clewn-1.15/ && sudo make install) || print_marked_msg --error "Install step for clewn failed."
-        mkdir -p ~/.vim/plugin/ && cp /usr/local/share/vim/vimfiles/clewn.vim ~/.vim/plugin/
-        mkdir -p ~/.vim/doc/ && cp /usr/local/share/vim/vimfiles/doc/clewn.txt ~/.vim/doc/
-        mkdir -p ~/.vim/macros/ && cp /usr/local/share/vim/vimfiles/macros/clewn_mappings.vim  ~/.vim/macros/
-        mkdir -p ~/.vim/syntax/ && cp /usr/local/share/vim/vimfiles/syntax/gdbvar.vim ~/.vim/syntax/
 
         log "Removing temp files\n"
         rm -rf "$TEMP_DIR"
