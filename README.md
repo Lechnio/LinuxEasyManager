@@ -1,4 +1,4 @@
-[![release](https://img.shields.io/badge/Release-v1.4.12-blue)][release]
+[![release](https://img.shields.io/badge/Release-v1.5.0-blue)][release]
 [![license](https://img.shields.io/github/license/Lechnio/LinuxEasyManager)][license]
 
  [release]: https://github.com/Lechnio/LinuxEasyManager/releases/latest "Releases · Lechnio/LinuxEasyManager"

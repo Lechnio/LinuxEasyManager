@@ -22,6 +22,7 @@ alias untarbz='tar -jxvf'
 alias cds='EASY_SAVED_PWD="$(pwd)"'
 alias cdb='cd "$EASY_SAVED_PWD"'
 alias findd='find . -name'
+alias lsport='lsof -i -P -n'
 alias :q='exit'
 
 # Git
@@ -29,4 +30,4 @@ alias gitst='git status'
 alias gitbr='git branch'
 alias gitlog='git log --all --decorate --oneline --graph'
 alias gitreset='git reset --soft HEAD~1'
-alias gitdiff='git diff HEAD'
+alias gitdiff='git diff --staged'
