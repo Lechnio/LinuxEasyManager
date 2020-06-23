@@ -5,7 +5,7 @@
 #   Github: https://github.com/Lechnio   #
 ##########################################
 
-readonly CURRENT_VERSION="1.5.0"
+readonly CURRENT_VERSION="1.5.1"
 readonly THIS_NAME="$(basename "$0")"
 THIS_DIR="$(realpath -s $0)" && THIS_DIR=${THIS_DIR%/$THIS_NAME}
 
@@ -56,7 +56,7 @@ function print_menu()
     "4. [${OPTIONS[3]}] --- Use apt-get (clean,update,upgrade,dist-upgrade,autoremove)\n"
     "5. [${OPTIONS[4]}] --- Use apt-get and install started packages\n"
     "6. [${OPTIONS[5]}] --- Install development tools (Qt, i386 arch)\n"
-    "7. [${OPTIONS[6]}] --+ Configure VIM editor (vimrc, plugins, clewn compiler, custom color)\n"
+    "7. [${OPTIONS[6]}] --+ Configure VIM editor (vimrc, plugins, custom color)\n"
     "8. [${OPTIONS[7]}] --- Install Spotify (add required source list, update apt)\n"
     "9. [${OPTIONS[8]}] --* Install extra hacking tools (lazy script)\n"
     "\n"
@@ -374,6 +374,8 @@ function run_selected_options()
 
         local DEVELOPMENT_TO_INSTALL=(
         "cmake"
+        "git"
+        "gitk"
         "meson"
 #       "qtcreator"
 #       "libqtcore4"
@@ -399,7 +401,7 @@ function run_selected_options()
         print_marked_msg --success "Installing development tools"
     fi
 
-    # configure VIMnm
+    # configure VIM
     if [ "${OPTIONS[6]}" == "$MARK_CHAR" ]; then
         print_progress
         print_marked_msg --started "Configuring VIM for $(whoami)"
@@ -416,7 +418,7 @@ function run_selected_options()
         "vim"
         )
 
-        log "Checking requirments for Clewn:\n" "${REQUIRMENTS[*]}"
+        log "Checking requirments for custom vim:\n" "${REQUIRMENTS[*]}"
         sudo apt-get install -ym "${REQUIRMENTS[@]}"
 
         log "Removing old plugins\n"
@@ -429,7 +431,7 @@ function run_selected_options()
         mv "$TEMP_DIR"/.ycm_extra_conf.py ~/.vim/
         VIM_VER=$(ls /usr/share/vim/ | grep -E "^vim[0-9]+$")
         VIM_VER=${VIM_VER##*[[:space:]]}
-        sudo mv "$TEMP_DIR"/kali.vim /usr/share/vim/$VIM_VER/colors/
+        sudo mv "$TEMP_DIR"/*.vim /usr/share/vim/$VIM_VER/colors/
         vim +PluginInstall +qall
         sudo python3 ~/.vim/bundle/YouCompleteMe/install.py --clang-completer # use --all instead to use with all lenguages
 
