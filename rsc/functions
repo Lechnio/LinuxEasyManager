@@ -79,3 +79,15 @@ function easy-change-txpower()
 
     return 0
 }
+
+function easy-git-diff()
+{
+    if [ $# -ne 2 ]; then
+        echo "Bad usage. Try $0 [branch_1] [branch_2]"
+        return 1
+    fi
+
+    git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative ${1}..${2}
+
+    return 0
+}
